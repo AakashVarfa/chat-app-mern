@@ -21,12 +21,15 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const socket = io("https://chatapp-project-wats.onrender.com", {
+    const socket = io(
+      import.meta.env.PROD ? undefined : "http://localhost:5002",
+      {
       query: {
         userId: authUser.user._id,
       },
       withCredentials: true,
-    });
+      }
+    );
 
     setSocket(socket);
 

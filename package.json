@@ -1,0 +1,8 @@
+{
+  "name": "chat-app-mern",
+  "private": true,
+  "scripts": {
+    "build": "npm install --prefix Backend && npm install --prefix Frontend && npm run build --prefix Frontend",
+    "start": "node Backend/index.js"
+  }
+}

@@ -37,7 +37,7 @@ const VerifyEmail = () => {
       setLoading(true);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/user/verify-email`,
+        `${import.meta.env.VITE_API_URL || ""}/api/user/verify-email`,
         {
           email: email,
           otp: otp,
