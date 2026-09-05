@@ -72,7 +72,7 @@ mongoose
     // PRODUCTION FRONTEND
     // =========================
 
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV !== "development") {
       const frontendPath = path.join(projectRoot, "Frontend", "dist");
 
       app.use(express.static(frontendPath));

@@ -10,6 +10,7 @@ import { sendOTPEmail } from "../utils/sendEmail.js";
 
 export const signup = async (req, res) => {
   const { fullname, email, password, confirmPassword } = req.body;
+  let user;
 
   try {
     // Check required fields
@@ -26,10 +27,9 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Check existing user
     const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
+    if (existingUser?.emailVerified) {
       return res.status(400).json({
         error: "User already registered",
       });
@@ -48,21 +48,24 @@ export const signup = async (req, res) => {
       Date.now() + 10 * 60 * 1000
     );
 
-    // Create user
-    const user = await User.create({
-      fullname,
-      email,
-      password: hashPassword,
-
-      emailVerified: false,
-
-      emailVerificationOTP: otp,
-
-      emailVerificationOTPExpires: otpExpires,
-    });
+    // Reuse an unverified account so a failed email delivery can be retried.
+    user = existingUser || new User({ email });
+    user.fullname = fullname;
+    user.password = hashPassword;
+    user.emailVerified = false;
+    user.emailVerificationOTP = otp;
+    user.emailVerificationOTPExpires = otpExpires;
+    await user.save();
 
     // Send OTP to user's email
-    await sendOTPEmail(email, otp);
+    try {
+      await sendOTPEmail(email, otp);
+    } catch (emailError) {
+      if (!existingUser) {
+        await User.deleteOne({ _id: user._id });
+      }
+      throw emailError;
+    }
 
     // IMPORTANT:
     // Do NOT create JWT here.
@@ -76,8 +79,8 @@ export const signup = async (req, res) => {
   } catch (error) {
     console.error("Signup Error:", error);
 
-    res.status(500).json({
-      error: "Internal server error",
+    res.status(503).json({
+      error: "Unable to send OTP email. Check the server email configuration.",
     });
   }
 };

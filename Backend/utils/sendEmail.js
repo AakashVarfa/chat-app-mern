@@ -1,12 +1,20 @@
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
+const emailUser = process.env.EMAIL_USER?.trim();
+const emailPass = process.env.EMAIL_PASS?.trim();
 
+if (!emailUser || !emailPass) {
+  console.error("EMAIL_USER and EMAIL_PASS must be configured for OTP email");
+}
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: emailUser,
+    pass: emailPass,
   },
 });
 
@@ -22,7 +30,7 @@ transporter.verify((error, success) => {
 export const sendOTPEmail = async (email, otp) => {
   try {
     const mailOptions = {
-      from: `"ChatApp" <${process.env.EMAIL_USER}>`,
+      from: `"ChatApp" <${emailUser}>`,
       to: email,
       subject: "ChatApp - Email Verification OTP",
 
@@ -85,7 +93,7 @@ export const sendOTPEmail = async (email, otp) => {
 
     return info;
   } catch (error) {
-    console.error("Email sending error:", error.message);
+    console.error("Email sending error:", error.code || "unknown", error.message);
     throw new Error("Failed to send OTP email");
   }
 };
