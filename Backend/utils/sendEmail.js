@@ -2,7 +2,7 @@ import "dotenv/config";
 import nodemailer from "nodemailer";
 
 const emailUser = process.env.EMAIL_USER?.trim();
-const emailPass = process.env.EMAIL_PASS?.trim();
+const emailPass = process.env.EMAIL_PASS?.replace(/\s+/g, "");
 
 if (!emailUser || !emailPass) {
   console.error("EMAIL_USER and EMAIL_PASS must be configured for OTP email");
